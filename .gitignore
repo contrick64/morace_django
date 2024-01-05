@@ -1,0 +1,25 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database files
+*.sqlite3
+*.db
+
+# Static files
+/static/
+
+# Media files
+/media/
+
+# IDE specific files
+.vscode/
+.idea/
+
+# Compiled Python files
+*.pyc
+
+# Django migration files
+/migrations/
+*.bak
