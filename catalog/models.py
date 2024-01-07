@@ -2,7 +2,7 @@ from django.db import models
 
 # Create your models here.
 class ReleaseGroup(models.Model):
-    num = models.IntegerField("release number", primary_key=True)
+    num = models.BigIntegerField("release number", primary_key=True)
     name = models.CharField(max_length=255)
     medium = models.CharField(max_length=45)
     date = models.DateField()
@@ -17,27 +17,28 @@ class ReleaseGroup(models.Model):
         else: return "NEG"
     @property
     def cat_id(self):
-        return f"{self.catalog}{str(self.num).zfill(3)}"
+        num_padded = "%03d" % abs(self.num)
+        return f"{self.catalog}{num_padded}"
     
     def __str__(self):
         return f"{self.cat_id} - {self.name}"
     
 class Release(models.Model):
-    cat_id = models.ForeignKey(ReleaseGroup, on_delete=models.CASCADE)
-    form = models.CharField("format", max_length=45, blank=False, null=False)
+    release = models.ForeignKey(ReleaseGroup, on_delete=models.CASCADE)
+    form = models.CharField("format", max_length=45)
     date = models.DateField()
     num = models.IntegerField(blank=True)
     desc = models.TextField(blank=True)
     count = models.IntegerField(blank=True)
     
     @property 
-    def id(self): return f"{self.cat_id}-{self.num}"
+    def cat_id(self): return f"{self.release.cat_id}{f'-{int(self.num):02d}' if self.num else ''}"
     
     def __str__(self):
-        return f"{self.id} - {self.form}, {self.cat_id.name}"
+        return f"{self.cat_id} - {self.release.name}({self.form})"
 
 class Artist(models.Model):
-    name = models.CharField(max_length=255, blank=False, null=False)
+    name = models.CharField(max_length=255)
     desc = models.TextField(blank=True)
     
     def __str__(self):
@@ -51,18 +52,25 @@ class DetailType(models.Model):
         return self.name
 
 class Track(models.Model):
-    release = models.ForeignKey(Release, on_delete=models.CASCADE)
-    is_specific_to_format = models.BooleanField()
+    # need to match up w details
+    release_grp = models.ForeignKey(ReleaseGroup, on_delete=models.CASCADE)
+    release = models.ForeignKey(Release, on_delete=models.SET_NULL, blank=True, null=True)
     name = models.CharField(max_length=255)
     num = models.IntegerField()
     duration = models.DurationField()
     lyrics = models.TextField(blank=True)
     desc = models.TextField(blank=True)
     
+    def __str__(self):
+        return self.name
+    
 class Detail(models.Model):
     relationship = models.ForeignKey(DetailType, on_delete=models.PROTECT)
     name = models.CharField(max_length=255)
     value = models.CharField(max_length=255)
     artist = models.ForeignKey(Artist, on_delete=models.SET_NULL, blank=True, null=True)
-    track = models.ForeignKey(Track, on_delete=models.CASCADE)
+    track = models.IntegerField(blank=True, null=True)
     release = models.ForeignKey(ReleaseGroup, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return self.name
