@@ -1,6 +1,7 @@
 from django.contrib import admin
 
 from .models import ReleaseGroup, DetailType, Detail, Release, Artist, Track
+from .forms import ReleaseGroupForm
 
 class ReleaseInline(admin.StackedInline):
     model = Release
@@ -15,6 +16,7 @@ class TrackInline(admin.TabularInline):
     extra = 3
 
 class ReleaseGroupAdmin(admin.ModelAdmin):
+    form = ReleaseGroupForm
     # list_display = ["cat_id","name","date","form"]
     fieldsets = [
         ("Release Number", {"fields": ["num"]}),
